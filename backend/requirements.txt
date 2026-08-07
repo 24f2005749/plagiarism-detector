@@ -1,0 +1,10 @@
+rapidfuzz==3.14.3
+scikit-learn==1.7.2
+sentence-transformers==5.1.2
+spacy==3.8.14
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+pytest==8.4.2
+PyMuPDF==1.26.5
+Pillow==11.3.0
+pytesseract==0.3.13
+python-docx==1.2.0
