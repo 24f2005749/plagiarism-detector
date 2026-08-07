@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+.vscode/
+.DS_Store
+
+# Runtime-generated backend data. Keep only directory placeholders in Git.
+backend/uploads/*
+!backend/uploads/.gitkeep
+reports/*
+!reports/.gitkeep
+temporary/*
+!temporary/.gitkeep
