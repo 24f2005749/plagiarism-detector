@@ -1,6 +1,6 @@
 # The header of the files must be "files" mentioned in line 13 or the first line of post function in Uploaded file resource 
 
-
+import shutil
 from flask import Flask, request
 from flask_restful import Api, Resource
 from werkzeug.utils import secure_filename
@@ -38,9 +38,34 @@ class UploadFile(Resource):
         return {
             "message": "Files uploaded successfully",
             "documents": uploaded
-        }, 201 # 201 Created success     
+        }, 201 # 201 Created success  
+
+class DeleteJob(Resource):
+
+    def delete(self, job_id):
+
+        job_folder = UPLOAD_FOLDER / job_id
+
+        # Agar na mile
+        if not job_folder.exists():
+            return {
+                "error": "Job not found"
+            }, 404
+        # Agar mil jaye
+        shutil.rmtree(job_folder)
+
+        return {
+            "message": "Job deleted successfully",
+            "job_id": job_id
+        }, 200   
 
 api.add_resource(UploadFile, "/upload") 
+api.add_resource(
+    DeleteJob,
+    "/api/plagiarism/jobs/<string:job_id>"
+    # Please send the job id as string and not as list, I will create some fallback for it
+
+)
 
 
 if __name__ == "__main__":
