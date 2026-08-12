@@ -40,6 +40,33 @@ class UploadFile(Resource):
             "documents": uploaded
         }, 201 # 201 Created success  
 
+class Documents(Resource):
+
+    def get(self):
+        jobs = {}
+
+    #Agar upload folder hi nahi hai 
+        if not UPLOAD_FOLDER.exists():
+            return jobs, 200
+        for job_folder in UPLOAD_FOLDER.iterdir(): # Upload folder ke trees ko iterate krra hu
+            if not job_folder.is_dir(): # Fallback if a file is there instead of all folders
+                continue
+            job_id = job_folder.name
+            files = []
+            for file_path in job_folder.iterdir():
+                stored_filename = file_path.name
+                # Stored filename:
+                # UUID_originalfilename.pdf - Split after _, pehle wala part hai Doc_ID and 2nd wala part hai filename
+                document_id, filename = stored_filename.split("_", 1)
+                files.append({
+                    "document_id": document_id,
+                    "filename": filename
+                })
+                jobs[job_id] = {
+                "files": files
+            }
+            return jobs, 200
+
 class DeleteJob(Resource):
 
     def delete(self, job_id):
@@ -64,7 +91,10 @@ api.add_resource(
     DeleteJob,
     "/api/plagiarism/jobs/<string:job_id>"
     # Please send the job id as string and not as list, I will create some fallback for it
-
+)
+api.add_resource(
+    Documents,
+    "/api/documents"
 )
 
 
