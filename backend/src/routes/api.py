@@ -1,34 +1,53 @@
-# The header of the files must be "files" mentioned in line 13 or the first line of post function in Uploaded file resource 
-
 import shutil
+import uuid
+from pathlib import Path
 from flask import Flask, request
 from flask_restful import Api, Resource
 from werkzeug.utils import secure_filename
-import uuid
-from  pathlib import Path
 
 app = Flask(__name__)
 api = Api(app)
 
-UPLOAD_FOLDER = Path("uploads") # Crazy stuff I discovered
+UPLOAD_FOLDER = Path("backend/uploads")
 
-class UploadFile(Resource):
+
+class Document(Resource):
+
     def post(self):
+
         files = request.files.getlist("files")
+
+        if not files:
+            return {
+                "error": "No files uploaded"
+            }, 400
+
+        # One job ID for this upload
+        job_id = str(uuid.uuid4())
+
+        # Create:
+        # uploads/<job_id>/
+        job_folder = UPLOAD_FOLDER / job_id
+        job_folder.mkdir(parents=True)
 
         uploaded = []
 
         for file in files:
+
             if not file.filename:
                 continue
 
             filename = secure_filename(file.filename)
+
+            # Unique ID for individual document
             document_id = str(uuid.uuid4())
+
             stored_filename = f"{document_id}_{filename}"
-            file_path = UPLOAD_FOLDER / stored_filename
+
+            file_path = job_folder / stored_filename
+
             file.save(file_path)
 
-            #  Update my list for the files that are uploaded
             uploaded.append({
                 "document_id": document_id,
                 "filename": filename,
@@ -37,66 +56,73 @@ class UploadFile(Resource):
 
         return {
             "message": "Files uploaded successfully",
+            "job_id": job_id,
             "documents": uploaded
-        }, 201 # 201 Created success  
+        }, 201
 
-class Documents(Resource):
+    # def get(self, documentID):
+    #     for job_folder in UPLOAD_FOLDER.iterdir():
+    #         if not job_folder.is_dir():
+    #             continue
 
-    def get(self):
-        jobs = {}
+    #         for file_path in job_folder.iterdir():
+    #             document_id, filename = file_path.name.split("_", 1)
+    #             if (document_id == documentID):
+    #                 return {
+    #                     "filename": filename,
+    #                     "job_id": job_folder.name,
+    #                     "size": file_path.stat().st_size,
+    #                     "type":file_path.suffix
+    #                 },200
+    
+            
 
-    #Agar upload folder hi nahi hai 
-        if not UPLOAD_FOLDER.exists():
-            return jobs, 200
-        for job_folder in UPLOAD_FOLDER.iterdir(): # Upload folder ke trees ko iterate krra hu
-            if not job_folder.is_dir(): # Fallback if a file is there instead of all folders
-                continue
-            job_id = job_folder.name
-            files = []
-            for file_path in job_folder.iterdir():
-                stored_filename = file_path.name
-                # Stored filename:
-                # UUID_originalfilename.pdf - Split after _, pehle wala part hai Doc_ID and 2nd wala part hai filename
-                document_id, filename = stored_filename.split("_", 1)
-                files.append({
-                    "document_id": document_id,
-                    "filename": filename
-                })
-                jobs[job_id] = {
-                "files": files
-            }
-            return jobs, 200
+class JobWork(Resource):
 
-class DeleteJob(Resource):
-
-    def delete(self, job_id):
+    def get(self, job_id):
 
         job_folder = UPLOAD_FOLDER / job_id
 
-        # Agar na mile
         if not job_folder.exists():
             return {
                 "error": "Job not found"
             }, 404
-        # Agar mil jaye
-        shutil.rmtree(job_folder)
+
+        files = []
+
+        for file_path in job_folder.iterdir():
+
+            if not file_path.is_file():
+                continue
+
+            files.append(file_path.name)
 
         return {
-            "message": "Job deleted successfully",
-            "job_id": job_id
-        }, 200   
+            "files": files
+        }, 200
+    
+    def delete(self,job_id):
+        job_folder = UPLOAD_FOLDER / job_id
+        if not job_folder.exists():
+            return {
+                "error": "Job not found"
+            }, 404
+        shutil.rmtree(job_folder)
+        return {
+        "message": "Job deleted successfully",
+        "job_id": job_id
+        }, 410
 
-api.add_resource(UploadFile, "/upload") 
 api.add_resource(
-    DeleteJob,
-    "/api/plagiarism/jobs/<string:job_id>"
-    # Please send the job id as string and not as list, I will create some fallback for it
-)
-api.add_resource(
-    Documents,
-    "/api/documents"
+    Document,
+    "/api/documents/upload",
+    "/api/documents/<string:documentID>"
 )
 
+api.add_resource(
+    JobWork,
+    "/api/jobs/<string:job_id>"
+)
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
