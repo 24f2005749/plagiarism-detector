@@ -51,7 +51,7 @@ brew install tesseract
 ```
 
 Handwriting recognition quality depends on legibility, scan resolution, and
-the installed Tesseract language data; clear, high-contrast scans work best.
+the installed Tesseract language data; clear, high contrast scans work best.
 
 ## Use from Python
 
