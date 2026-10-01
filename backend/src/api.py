@@ -411,22 +411,22 @@ api.add_resource(
 
 api.add_resource(
     LexicalResult,
-    "/api/jobs/<string:job_id>/lexical"
+    "/api/jobs/lexical/<string:job_id>"
 )
 
 api.add_resource(
     SemanticResult,
-    "/api/jobs/<string:job_id>/semantic"
+    "/api/jobs/semantic/<string:job_id>"
 )
 
 api.add_resource(
     SentenceResult,
-    "/api/jobs/<string:job_id>/sentences"
+    "/api/jobs/sentences/<string:job_id>"
 )
 
 api.add_resource(
     DecisionResult,
-    "/api/jobs/<string:job_id>/decision"
+    "/api/jobs/decision/<string:job_id>"
 )
 
 
