@@ -6,6 +6,7 @@ venv/
 .env
 .vscode/
 .DS_Store
+uploads/
 
 # Runtime-generated backend data. Keep only directory placeholders in Git.
 backend/uploads/*
