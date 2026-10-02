@@ -5,7 +5,7 @@ import Dashboard from "./Pages/Dashboard.jsx";
 import NewCheck from "./Pages/NewCheck.jsx";
 import Results from "./Pages/Results.jsx";
 import Sidebar from "./components/sidebar.jsx";
-import Bouncy from "./components/Loader.jsx";
+import Loader from "./components/Loader.jsx";
 function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [isLoading,setLoading]=useState(false);
@@ -15,7 +15,7 @@ function App() {
 
   return (
     <div className={darkMode ? "app dark-theme" : "app light-theme"}>
-       {isLoading && <Bouncy/>}
+       {isLoading && <Loader/>}
       <BrowserRouter>
         <div className="app-layout">
 
