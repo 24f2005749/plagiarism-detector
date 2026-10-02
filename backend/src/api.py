@@ -396,6 +396,70 @@ class DecisionResult(Resource):
 
 
 
+# Heatmap result
+
+class HeatmapResult(Resource):
+
+    def get(self, job_id):
+
+        analysis, error, status = load_analysis(job_id)
+
+        if error:
+            return error, status
+
+        documents = {}
+        
+        # Collect documents and their IDs
+        for comparison in analysis["comparisons"]:
+            for key in ("document_1", "document_2"):
+                doc = comparison[key]
+                documents[doc["document_id"]] = {
+                    "document_id": doc["document_id"],
+                    "filename": doc["filename"]
+                }
+
+        docs = list(documents.values())
+
+        # Create document ID to matrix index mapping
+        index = {
+            doc["document_id"]: i
+            for i, doc in enumerate(docs)
+        }
+
+        n = len(docs)
+
+        # Initialize matrix
+        matrix = [
+            [None for _ in range(n)]
+            for _ in range(n)
+        ]
+
+        # Set diagonal to 100
+        for i in range(n):
+            matrix[i][i] = 100.0
+
+        # Fill pairwise similarity values
+        for comparison in analysis["comparisons"]:
+
+            doc1 = comparison["document_1"]["document_id"]
+            doc2 = comparison["document_2"]["document_id"]
+
+            i = index[doc1]
+            j = index[doc2]
+
+            score = comparison["result"]["decision"]["overall"]
+
+            matrix[i][j] = score
+            matrix[j][i] = score
+
+        return {
+            "job_id": job_id,
+            "document_count": n,
+            "documents": docs,
+            "matrix": matrix
+        }, 200
+
+
 # Routes
 
 
@@ -429,6 +493,10 @@ api.add_resource(
     "/api/jobs/decision/<string:job_id>"
 )
 
+api.add_resource(
+    HeatmapResult,
+    "/api/jobs/heatmap/<string:job_id>"
+)
 
 
 # Run server
