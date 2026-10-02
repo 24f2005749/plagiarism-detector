@@ -1,34 +1,56 @@
 import { useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
-import Header from "./Pages/Dashboard.jsx";
-import AnalysisOverview from "./components/AnalysisOverview.jsx";
-import StartNewAnalysis from "./components/StartNewAnalysis.jsx";
-import DocumentCompareForm from "./components/DocumentCompareForm.jsx";
-import LatestAnalysis from "./components/LatestAnalysis.jsx";
-import Sidebar from "./components/Sidebar.jsx";
-
+import Dashboard from "./Pages/Dashboard.jsx";
+import NewCheck from "./Pages/NewCheck.jsx";
+import Results from "./Pages/Results.jsx";
+import Sidebar from "./components/sidebar.jsx";
+import Bouncy from "./components/Loader.jsx";
 function App() {
   const [darkMode, setDarkMode] = useState(true);
+  const [isLoading,setLoading]=useState(false);
   const toggleTheme = () => {
     setDarkMode((prev) => !prev);
   };
 
   return (
     <div className={darkMode ? "app dark-theme" : "app light-theme"}>
-      <div className="app-layout">
-        <Sidebar activePage="Dashboard" />
-        <div className="app-main">
-          <Header darkMode={darkMode} toggleTheme={toggleTheme} />
-          <main className="dashboard-content">
-            <AnalysisOverview documentsChecked={4} comparisonsMade={6} needsReview={2} />
-            <StartNewAnalysis />
-            <DocumentCompareForm />
-            <LatestAnalysis />
-          </main>
+       {isLoading && <Bouncy/>}
+      <BrowserRouter>
+        <div className="app-layout">
+
+          <Sidebar />
+
+          <div className="app-main">
+            <Routes>
+              {/* Dashboard */}
+              <Route
+                path="/"
+                element={
+                  <Dashboard
+                    darkMode={darkMode}
+                    toggleTheme={toggleTheme}
+                  />
+                }
+              />
+              {/* New Check */}
+              <Route
+                path="/new-check"
+                
+                element={<NewCheck setLoading={setLoading}/>}
+              />
+              {/*Results*/}
+              <Route
+                path="/results"
+                element={<Results/>}
+              />
+            </Routes>
+          </div>
         </div>
-      </div>
+      </BrowserRouter>
     </div>
   );
 }
 
 export default App;
+

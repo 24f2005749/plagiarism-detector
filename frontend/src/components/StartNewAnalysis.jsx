@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { Search, Upload, FileText, X } from "lucide-react";
 
 function StartNewAnalysis() {
@@ -25,9 +25,7 @@ function StartNewAnalysis() {
       return;
     }
     console.log("Starting analysis with files:", files);
-    // yahan apna upload/analysis API call laga dena
   };
-
   return (
     <div className="start-analysis-card">
       <Search size={28} className="analysis-search-icon" />

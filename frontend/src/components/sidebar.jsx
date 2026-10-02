@@ -1,16 +1,28 @@
+import {
+  FileText,
+  Home,
+  Search,
+  BarChart3,
+  History,
+  HelpCircle,
+} from "lucide-react";
 
-import { FileText,Home, Search,BarChart3,History,HelpCircle,} from "lucide-react";
+import { NavLink } from "react-router-dom";
 
-function Sidebar({ activePage = "Dashboard" }) {
-  const workspaceItems = [
-    { label: "Dashboard", icon: Home },
-    { label: "New Check", icon: Search },
-    { label: "Results", icon: BarChart3 },
-    { label: "History", icon: History },
-  ];
+function Sidebar() {
+ const workspaceItems = [
+  { label: "Dashboard", icon: Home, path: "/" },
+  { label: "New Check", icon: Search, path: "/new-check" },
+  { label: "Results", icon: BarChart3, path: "/results" },
+  { label: "History", icon: History, path: "/history" },
+];
   const supportItems = [
-    { label: "Help & About",
-     icon: HelpCircle }];
+  {
+    label: "Help & About",
+    icon: HelpCircle,
+    path: "/help",
+  },
+];
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -20,18 +32,19 @@ function Sidebar({ activePage = "Dashboard" }) {
       <div className="sidebar-divider" />
       <div className="sidebar-section">
         <p className="sidebar-section-title">Workspace</p>
+
         <nav className="sidebar-nav">
-          {workspaceItems.map(({ label, icon: Icon }) => (
-            <a
+          {workspaceItems.map(({ label, icon: Icon, path }) => (
+            <NavLink
               key={label}
-              href="#"
-              className={`sidebar-link ${
-                activePage === label ? "active" : ""
-              }`}
+              to={path}
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
             >
               <Icon size={19} />
               <span>{label}</span>
-            </a>
+            </NavLink>
           ))}
         </nav>
       </div>
@@ -39,22 +52,21 @@ function Sidebar({ activePage = "Dashboard" }) {
       <div className="sidebar-section">
         <p className="sidebar-section-title">Support</p>
         <nav className="sidebar-nav">
-          {supportItems.map(({ label, icon: Icon }) => (
-            <a
+          {supportItems.map(({ label, icon: Icon, path }) => (
+            <NavLink
               key={label}
-              href="#"
-              className={`sidebar-link ${
-                activePage === label ? "active" : ""
-              }`}
+              to={path}
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
             >
               <Icon size={19} />
               <span>{label}</span>
-            </a>
+            </NavLink>
           ))}
         </nav>
       </div>
     </aside>
   );
 }
-
 export default Sidebar;

@@ -10,8 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react": "^19.3.0",
+    "react-dom": "^19.2.8",
+    "router-dom": "^3.3.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
