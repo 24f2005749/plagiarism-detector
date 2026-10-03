@@ -37,6 +37,26 @@ pip install -r requirements.txt
 PYTHONPATH=backend/src python backend/src/run_analysis.py backend/uploads/sample1.txt backend/uploads/sample2.txt
 ```
 
+## Run the web app
+
+Start the API server from the repository root:
+
+```bash
+PYTHONPATH=backend/src python backend/src/api.py
+```
+
+Then, in a second terminal, start the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite development server proxies `/api` requests to `http://localhost:5000`.
+For a deployed frontend, set `VITE_API_BASE_URL` to the API base URL (for
+example, `https://api.example.com/api`) before building.
+
 ## Supported document formats
 
 `analyze_documents` accepts UTF-8 text files (`.txt`, `.text`, `.md`), Word documents (`.docx`), PDFs,
