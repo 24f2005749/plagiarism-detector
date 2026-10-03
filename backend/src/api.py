@@ -4,6 +4,7 @@ import uuid
 from pathlib import Path
 
 from flask import Flask, request
+from flask_cors import CORS
 from flask_restful import Api, Resource
 from werkzeug.utils import secure_filename
 
@@ -11,6 +12,7 @@ from services.plagiarism_service import analyze_documents
 
 
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 api = Api(app)
 
 UPLOAD_FOLDER = Path(__file__).resolve().parents[2] / "uploads"
