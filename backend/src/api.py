@@ -9,13 +9,14 @@ from flask_restful import Api, Resource
 from werkzeug.utils import secure_filename
 
 from services.plagiarism_service import analyze_documents
+from parser import DocumentParseError, SUPPORTED_EXTENSIONS
 
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 api = Api(app)
 
-UPLOAD_FOLDER = Path(__file__).resolve().parents[2] / "uploads"
+UPLOAD_FOLDER = Path(__file__).resolve().parents[1] / "uploads"
 
 
 
@@ -36,6 +37,11 @@ def get_original_filename(file_path):
     <document_uuid>_<original_filename>
     """
     return file_path.name.split("_", 1)[1]
+
+
+def api_error(message, status=400):
+    """Return an error shape the frontend can display consistently."""
+    return {"error": message}, status
 
 
 
@@ -94,6 +100,15 @@ class Document(Resource):
 
             if not filename:
                 continue
+
+            extension = Path(filename).suffix.lower()
+            if extension not in SUPPORTED_EXTENSIONS:
+                shutil.rmtree(job_folder, ignore_errors=True)
+                supported = ", ".join(sorted(SUPPORTED_EXTENSIONS))
+                return api_error(
+                    f"'{filename}' is not supported. Choose one of: {supported}.",
+                    400,
+                )
 
             document_id = str(uuid.uuid4())
 
@@ -179,9 +194,16 @@ class JobWork(Resource):
         # Run the complete analysis once
         
 
-        analysis = analyze_documents(
-            [str(file_path) for file_path in files]
-        )
+        try:
+            analysis = analyze_documents([str(file_path) for file_path in files])
+        except (DocumentParseError, ValueError) as error:
+            return api_error(str(error), 422)
+        except Exception:
+            app.logger.exception("Analysis failed for job %s", job_id)
+            return api_error(
+                "The server could not analyze these documents. Check that the API dependencies and language model are installed, then try again.",
+                500,
+            )
 
         
         # Replace UUID-prefixed filenames
@@ -505,7 +527,8 @@ api.add_resource(
 
 
 if __name__ == "__main__":
+    UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
     app.run(
         port=5000,
-        debug=True
+        debug=False
     )
