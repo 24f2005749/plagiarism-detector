@@ -52,14 +52,14 @@ function DocumentCompareForm({ onAnalysisComplete }) {
     <div className="compare-form-card">
       <div className="section-title">
         <FileText size={17} />
-        <h2>COMPARE DOCUMENTS</h2>
+        <h2>COMPARE PLAGIARISM</h2>
       </div>
 
       <div className="new-analysis-form">
         <div className="text-input-group">
           <div className="text-input-label">
             <FileText size={16} />
-            <span>DOCUMENT A</span>
+            <span>TEXT A</span>
           </div>
           <textarea
             className="document-textbox"
@@ -72,7 +72,7 @@ function DocumentCompareForm({ onAnalysisComplete }) {
         <div className="text-input-group">
           <div className="text-input-label">
             <FileText size={16} />
-            <span>DOCUMENT B</span>
+            <span>TEXT B</span>
           </div>
           <textarea
             className="document-textbox"
@@ -84,7 +84,7 @@ function DocumentCompareForm({ onAnalysisComplete }) {
 
         <button className="new-analysis-btn" onClick={handleCompare}>
           <Search size={18} />
-          Compare Documents
+          Compare
         </button>
       </div>
     </div>
