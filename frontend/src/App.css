@@ -287,6 +287,22 @@ body {
   border: 1px solid var(--button-border);
 }
 
+.analysis-form-error {
+  width: 100%;
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--risk-high);
+}
+
+.empty-analysis {
+  padding: 24px;
+}
+
+.empty-analysis p {
+  margin: 0;
+  color: var(--secondary-text);
+}
+
 .start-analysis-card {
   width: 94%;
   margin: 20px auto 0;

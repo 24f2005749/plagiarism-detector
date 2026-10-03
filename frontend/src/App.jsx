@@ -10,6 +10,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [isLoading,setLoading]=useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [latestAnalysis, setLatestAnalysis] = useState(null);
   const toggleTheme = () => {
     setDarkMode((prev) => !prev);
   };
@@ -34,6 +35,9 @@ function App() {
                   <Dashboard
                     darkMode={darkMode}
                     toggleTheme={toggleTheme}
+                    analysis={latestAnalysis}
+                    onAnalysisComplete={setLatestAnalysis}
+                    setLoading={setLoading}
                   />
                 }
               />
@@ -41,12 +45,12 @@ function App() {
               <Route
                 path="/new-check"
                 
-                element={<NewCheck setLoading={setLoading}/>}
+                element={<NewCheck setLoading={setLoading} onAnalysisComplete={setLatestAnalysis}/>}
               />
               {/*Results*/}
               <Route
                 path="/results"
-                element={<Results/>}
+                element={<Results analysis={latestAnalysis}/>}
               />
             </Routes>
           </div>

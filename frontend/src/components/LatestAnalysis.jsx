@@ -63,67 +63,16 @@ function TechnicalMetricCircle({ label, value }) {
   );
 }
 function LatestAnalysis({ data, onViewReport }) {
+  const analysis = data;
 
-  const analysis = data || {
-    docA: "Research_A.pdf",
-    docB: "Research_B.pdf",
-    overallScore: "82.07%",
-    riskLevel: "HIGH RISK",
-    plagiarismType: "NEAR COPY",
-
-    metrics: {
-      semantic: "92.30%",
-      lexical: "60.42%",
-      sentences: "5 / 7",
-      coverage: "71.43%",
-      confidence: "78.00%"
-    },
-
-    evidence: {
-      highestMatch: "100.00%",
-      avgMatch: "77.39%"
-    },
-
-    sentenceMatrix: {
-      docASentences: ["S1", "S2", "S3", "S4", "S5"],
-      docBSentences: ["S1", "S2", "S3", "S4", "S5"],
-
-      data: [
-        [100, 15, 0, 8, 12],
-        [18, 95, 22, 5, 0],
-        [0, 10, 100, 40, 15],
-        [12, 0, 35, 88, 10],
-        [5, 2, 10, 15, 92]
-      ]
-    },
-
-    technical: [
-      {
-        label: "RapidFuzz Ratio",
-        value: "54.78%"
-      },
-      {
-        label: "RapidFuzz Partial",
-        value: "53.75%"
-      },
-      {
-        label: "Token Sort",
-        value: "68.51%"
-      },
-      {
-        label: "Token Set",
-        value: "70.31%"
-      },
-      {
-        label: "TF-IDF",
-        value: "50.53%"
-      },
-      {
-        label: "Sentence Transformer",
-        value: "92.30%"
-      }
-    ]
-  };
+  if (!analysis) {
+    return (
+      <section className="latest-analysis-section empty-analysis">
+        <div className="section-title"><h2>LATEST ANALYSIS</h2></div>
+        <p>Run a document or text comparison to see verified plagiarism evidence here.</p>
+      </section>
+    );
+  }
 
   const getRiskClass = (score) => {
     const numericScore = parseFloat(score);

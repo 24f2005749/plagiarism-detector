@@ -2,17 +2,7 @@
 import DocumentCompareForm from "../components/DocumentCompareForm.jsx";
 import StartNewAnalysis from "../components/StartNewAnalysis.jsx";
 
-function NewCheck() {
-   const handleStart = async () => {
-    try {
-      setLoading(true);
-      
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);   
-    }
-  };
+function NewCheck({ setLoading, onAnalysisComplete }) {
   return (
     <>
       <div className="NewCheck-Content">
@@ -22,11 +12,10 @@ function NewCheck() {
         </div>
       </div>
 
-      <StartNewAnalysis />
-      <DocumentCompareForm />
+      <StartNewAnalysis onAnalysisComplete={onAnalysisComplete} setLoading={setLoading} />
+      <DocumentCompareForm onAnalysisComplete={onAnalysisComplete} setLoading={setLoading} />
     </>
   );
 }
 
 export default NewCheck;
-
