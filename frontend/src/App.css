@@ -160,7 +160,8 @@ body {
   padding: 26px 18px;
   background-color: var(--header-bg);
   border-right: 1px solid var(--button-border);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+  transition: width 0.25s ease, padding 0.25s ease, background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .sidebar-logo {
@@ -172,6 +173,72 @@ body {
   font-weight: 700;
   letter-spacing: 0.3px;
   color: var(--text-color);
+}
+
+.sidebar-toggle {
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--secondary-text);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebar-toggle:hover,
+.sidebar-toggle:focus-visible {
+  border-color: var(--button-border);
+  background-color: var(--button-bg);
+  color: var(--text-color);
+  outline: none;
+}
+
+.sidebar--collapsed {
+  width: 68px;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.sidebar--collapsed .sidebar-logo {
+  padding: 0 0 22px;
+  justify-content: center;
+}
+
+.sidebar--collapsed .sidebar-logo > svg,
+.sidebar--collapsed .sidebar-label,
+.sidebar--collapsed .sidebar-section-title {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar-toggle {
+  margin: 0;
+}
+
+.sidebar--collapsed .sidebar-divider {
+  margin: 10px 0;
+}
+
+.sidebar--collapsed .sidebar-section {
+  display: contents;
+}
+
+.sidebar--collapsed .sidebar-nav {
+  gap: 8px;
+}
+
+.sidebar--collapsed .sidebar-link {
+  width: 44px;
+  height: 44px;
+  justify-content: center;
+  padding: 0;
+  margin: 0 auto;
 }
 
 .sidebar-divider {
@@ -1017,10 +1084,22 @@ body {
     flex-direction: column;
   }
 
+  .app-layout.sidebar-collapsed {
+    flex-direction: row;
+  }
+
   .sidebar {
     width: 100%;
     min-height: auto;
     position: static;
+  }
+
+  .sidebar--collapsed {
+    width: 68px;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
   }
 
   .dashboard-header,

@@ -9,6 +9,7 @@ import Loader from "./components/Loader.jsx";
 function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [isLoading,setLoading]=useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const toggleTheme = () => {
     setDarkMode((prev) => !prev);
   };
@@ -17,9 +18,12 @@ function App() {
     <div className={darkMode ? "app dark-theme" : "app light-theme"}>
        {isLoading && <Loader/>}
       <BrowserRouter>
-        <div className="app-layout">
+        <div className={`app-layout ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
 
-          <Sidebar />
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed((collapsed) => !collapsed)}
+          />
 
           <div className="app-main">
             <Routes>
@@ -53,4 +57,3 @@ function App() {
 }
 
 export default App;
-
