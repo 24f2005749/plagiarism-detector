@@ -1,11 +1,39 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
+const isLocalBrowser =
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+// Use IPv4 explicitly: on macOS, localhost:5000 can resolve to AirPlay Receiver
+// over IPv6 instead of this app's Flask process, which returns an unrelated 403.
+// Deployments should provide VITE_API_BASE_URL or proxy /api.
+const API_BASE_URL = configuredApiBaseUrl || (isLocalBrowser ? "http://127.0.0.1:5000/api" : "/api");
 
 async function request(path, options) {
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
-  const payload = await response.json().catch(() => ({}));
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, options);
+  } catch {
+    throw new Error("Cannot reach the analysis API. Start the backend server at http://127.0.0.1:5000 and try again.");
+  }
+
+  const responseText = await response.text();
+  let payload;
+  try {
+    payload = responseText ? JSON.parse(responseText) : {};
+  } catch {
+    payload = { error: responseText };
+  }
 
   if (!response.ok) {
-    throw new Error(payload.error || "The analysis request could not be completed.");
+    if (response.status === 403 && !configuredApiBaseUrl) {
+      throw new Error(
+        "The frontend server rejected the API request. Start the Flask API on port 5000 or set VITE_API_BASE_URL to your API URL.",
+      );
+    }
+
+    throw new Error(
+      payload.error || payload.message || `The analysis API returned an error (${response.status}).`,
+    );
   }
 
   return payload;
@@ -13,7 +41,14 @@ async function request(path, options) {
 
 const percentage = (value) => `${Number(value || 0).toFixed(2)}%`;
 
-function toAnalysisViewModel(jobId, decisionResponse, semanticResponse, lexicalResponse, sentenceResponse) {
+function toAnalysisViewModel(
+  jobId,
+  decisionResponse,
+  semanticResponse,
+  lexicalResponse,
+  sentenceResponse,
+  heatmapResponse,
+) {
   const decision = decisionResponse.results[0];
   const semantic = semanticResponse.results[0];
   const lexical = lexicalResponse.results[0];
@@ -23,16 +58,28 @@ function toAnalysisViewModel(jobId, decisionResponse, semanticResponse, lexicalR
     throw new Error("The analysis completed but did not return comparison results.");
   }
 
-  const matches = sentences.matches || [];
-  const rows = matches.length
-    ? matches.map((match, index) => ({ label: `S${index + 1}`, score: match.score }))
-    : [{ label: "S1", score: 0 }];
+  const pairs = decisionResponse.results.map((pair) => ({
+    documentA: pair.document_1,
+    documentB: pair.document_2,
+    score: Number(pair.overall),
+    risk: pair.risk,
+  }));
+  const highestPair = pairs.reduce((highest, pair) => (pair.score > highest.score ? pair : highest));
+  const averagePairScore = pairs.reduce((total, pair) => total + pair.score, 0) / pairs.length;
 
   return {
     jobId,
     documentsChecked: decisionResponse.total_documents,
     comparisonsMade: decisionResponse.total_comparisons,
     needsReview: decisionResponse.results.filter((result) => !["Low", "Very Low"].includes(result.risk)).length,
+    isMultiDocument: decisionResponse.total_documents > 2,
+    batch: {
+      averagePairScore: percentage(averagePairScore),
+      highestPair: {
+        ...highestPair,
+        score: percentage(highestPair.score),
+      },
+    },
     docA: decision.document_1,
     docB: decision.document_2,
     overallScore: percentage(decision.overall),
@@ -49,17 +96,10 @@ function toAnalysisViewModel(jobId, decisionResponse, semanticResponse, lexicalR
       highestMatch: percentage(sentences.highest_similarity),
       avgMatch: percentage(sentences.average_similarity),
     },
-    sentenceMatrix: {
-      docASentences: rows.map((row) => row.label),
-      docBSentences: ["Best match"],
-      data: rows.map((row) => [Number(row.score || 0).toFixed(2)]),
+    documentMatrix: {
+      documents: heatmapResponse.documents.map((document) => document.filename),
+      values: heatmapResponse.matrix,
     },
-    technical: [
-      { label: "Semantic", value: percentage(semantic.semantic_similarity) },
-      { label: "Lexical", value: percentage(lexical.lexical_similarity) },
-      { label: "Coverage", value: percentage(sentences.coverage) },
-      { label: "Confidence", value: percentage(decision.confidence) },
-    ],
   };
 }
 
@@ -75,12 +115,13 @@ export async function analyzeFiles(files) {
   const jobPath = `/jobs/${upload.job_id}`;
   await request(jobPath, { method: "POST" });
 
-  const [decision, semantic, lexical, sentences] = await Promise.all([
+  const [decision, semantic, lexical, sentences, heatmap] = await Promise.all([
     request(`/jobs/decision/${upload.job_id}`),
     request(`/jobs/semantic/${upload.job_id}`),
     request(`/jobs/lexical/${upload.job_id}`),
     request(`/jobs/sentences/${upload.job_id}`),
+    request(`/jobs/heatmap/${upload.job_id}`),
   ]);
 
-  return toAnalysisViewModel(upload.job_id, decision, semantic, lexical, sentences);
+  return toAnalysisViewModel(upload.job_id, decision, semantic, lexical, sentences, heatmap);
 }

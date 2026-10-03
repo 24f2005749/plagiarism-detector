@@ -4,6 +4,7 @@ import "./App.css";
 import Dashboard from "./Pages/Dashboard.jsx";
 import NewCheck from "./Pages/NewCheck.jsx";
 import Results from "./Pages/Results.jsx";
+import Help from "./Pages/Help.jsx";
 import Sidebar from "./components/sidebar.jsx";
 import Loader from "./components/Loader.jsx";
 function App() {
@@ -52,6 +53,7 @@ function App() {
                 path="/results"
                 element={<Results analysis={latestAnalysis}/>}
               />
+              <Route path="/help" element={<Help />} />
             </Routes>
           </div>
         </div>

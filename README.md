@@ -28,7 +28,7 @@ temporary/               # temporary parser/OCR files
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r backend/src/requirements.txt
 ```
 
 ## Run the example
@@ -53,9 +53,10 @@ npm install
 npm run dev
 ```
 
-The Vite development server proxies `/api` requests to `http://localhost:5000`.
-For a deployed frontend, set `VITE_API_BASE_URL` to the API base URL (for
-example, `https://api.example.com/api`) before building.
+For local development, the frontend calls `http://127.0.0.1:5000/api`
+directly. For a deployed frontend, copy `frontend/.env.example` to
+`frontend/.env` and set `VITE_API_BASE_URL` to the deployed API base URL
+(for example, `https://api.example.com/api`) before building.
 
 ## Supported document formats
 
