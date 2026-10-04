@@ -1,14 +1,17 @@
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
-
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
   width: 100%;
   min-height: 100%;
+  overflow-x: hidden;
 }
-
 body {
   font-family: Arial, sans-serif;
 }
@@ -16,7 +19,7 @@ body {
 .app {
   min-height: 100vh;
   width: 100%;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
 }
 
 .dark-theme {
@@ -36,30 +39,14 @@ body {
   color: var(--text-color);
 } 
 
-
- /*--bg-color: #faf6ee;
+.light-theme {
+--bg-color: #faf6ee;
   --header-bg: #ffffff;
   --text-color: #1c1917;
   --secondary-text: #57534e;
   --button-bg: #f3eee2;
   --button-border: #e3dbc8;
   --button-color: #292524;
-  --accent: #04873f;
-  --accent-hover: #036b32;
-  --risk-high: #c62828;
-  --risk-medium: #b45309;
-  --risk-low: #04873f;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-*/
-.light-theme {
-  --bg-color: #f4f6f8;
-  --header-bg: #ffffff;
-  --text-color: #111827;
-  --secondary-text: #4b5563;
-  --button-bg: #f1f3f5;
-  --button-border: #d9dee3;
-  --button-color: #1f2937;
   --accent: #04873f;
   --accent-hover: #036b32;
   --risk-high: #c62828;
@@ -77,6 +64,7 @@ body {
 .app-main {
   flex: 1;
   min-width: 0;
+  position: relative;
 }
 
 .dashboard-header,
@@ -127,30 +115,25 @@ body {
   align-items: center;
   gap: 12px;
 }
-
-.theme-btn{
+.theme-btn {
   width: 44px;
   height: 44px;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
   border: 1px solid var(--button-border);
-  background-color: var(--button-bg);
-  color: var(--button-color);
+  border-radius: 50%;
+  background: var(--button-bg);
+  color: var(--secondary-text);
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease,
-    color 0.2s ease, transform 0.2s ease;
 }
-
 .theme-btn:hover {
-  background-color: var(--button-border);
-  transform: translateY(-1px);
+  background: var(--button-bg);
+  color: var(--text-color);
 }
-
 .sidebar {
   width: 240px;
+  min-width: 240px;
   min-height: 100vh;
   position: sticky;
   top: 0;
@@ -158,9 +141,16 @@ body {
   display: flex;
   flex-direction: column;
   padding: 26px 18px;
+  box-sizing: border-box;
   background-color: var(--header-bg);
   border-right: 1px solid var(--button-border);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+  transition:
+    width 0.28s ease,
+    min-width 0.28s ease,
+    padding 0.28s ease,
+    border-color 0.28s ease,
+    opacity 0.2s ease;
 }
 
 .sidebar-logo {
@@ -1027,6 +1017,7 @@ body {
   .NewCheck-Content,
   .Result-Content {
     min-height: 110px;
+      padding: 24px 34px;
   }
 
   .header-actions {
@@ -1051,4 +1042,94 @@ body {
     height: 38px;
     font-size: 11px;
   }
+}
+/* =========================================
+   SIDEBAR COLLAPSE
+========================================= */
+
+.sidebar-closed .sidebar {
+  width: 0;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-right-color: transparent;
+  opacity: 0;
+}
+
+/* =========================================
+   SIDEBAR CONTENT
+========================================= */
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 10px 22px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-close-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--secondary-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.sidebar-close-btn:hover {
+  background-color: var(--button-bg);
+  color: var(--text-color);
+}
+
+.sidebar-close-btn:active {
+  transform: scale(0.92);
+}
+.sidebar-open-btn {
+  position: absolute;
+  left: 24px;
+  top:48px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--button-border);
+  border-radius: 10px;
+  background: var(--button-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  z-index: 100;
+}
+
+.sidebar-open-btn:hover {
+   border-color: var(--button-border);
+  background: var(--button-bg);
+  color: var(--text-color);
+}
+.sidebar-closed .dashboard-header {
+  padding-left: 92px;
+}
+.dashboard-header {
+  position: relative;
 }

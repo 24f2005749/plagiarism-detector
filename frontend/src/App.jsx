@@ -1,48 +1,65 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { PanelLeft } from "lucide-react";
+
 import "./App.css";
+
 import Dashboard from "./Pages/Dashboard.jsx";
 import NewCheck from "./Pages/NewCheck.jsx";
 import Results from "./Pages/Results.jsx";
 import Sidebar from "./components/sidebar.jsx";
-import Bouncy from "./components/Loader.jsx";
+import Loader from "./components/Loader.jsx";
+
 function App() {
   const [darkMode, setDarkMode] = useState(true);
-  const [isLoading,setLoading]=useState(false);
+  const [isLoading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const toggleTheme = () => {
     setDarkMode((prev) => !prev);
   };
-
   return (
     <div className={darkMode ? "app dark-theme" : "app light-theme"}>
-       {isLoading && <Bouncy/>}
+      {isLoading && <Loader />}
       <BrowserRouter>
-        <div className="app-layout">
-
-          <Sidebar />
-
+        <div
+          className={`app-layout ${
+            sidebarOpen ? "sidebar-open" : "sidebar-closed"
+          }`}
+        >
+          <Sidebar
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+          />
           <div className="app-main">
+            {!sidebarOpen && (
+              <button
+                className="sidebar-open-btn"
+                onClick={() => setSidebarOpen(true)}
+                title="Open sidebar"
+              >
+                <PanelLeft size={20} />
+              </button>
+            )}
             <Routes>
-              {/* Dashboard */}
               <Route
                 path="/"
                 element={
                   <Dashboard
                     darkMode={darkMode}
                     toggleTheme={toggleTheme}
+                    sidebarOpen={sidebarOpen}
+                     onOpenSidebar={() => setSidebarOpen(true)}
                   />
                 }
               />
-              {/* New Check */}
+
               <Route
                 path="/new-check"
-                
-                element={<NewCheck setLoading={setLoading}/>}
+                element={<NewCheck setLoading={setLoading} />}
               />
-              {/*Results*/}
               <Route
                 path="/results"
-                element={<Results/>}
+                element={<Results />}
               />
             </Routes>
           </div>
@@ -51,6 +68,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
-
