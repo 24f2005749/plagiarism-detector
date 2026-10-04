@@ -63,68 +63,63 @@ function TechnicalMetricCircle({ label, value }) {
   );
 }
 function LatestAnalysis({ data, onViewReport }) {
+  if (!data) return null;
+  const analysis = data;
 
-  const analysis = data || {
-    docA: "Research_A.pdf",
-    docB: "Research_B.pdf",
-    overallScore: "82.07%",
-    riskLevel: "HIGH RISK",
-    plagiarismType: "NEAR COPY",
-
-    metrics: {
-      semantic: "92.30%",
-      lexical: "60.42%",
-      sentences: "5 / 7",
-      coverage: "71.43%",
-      confidence: "78.00%"
-    },
-
-    evidence: {
-      highestMatch: "100.00%",
-      avgMatch: "77.39%"
-    },
-
-    sentenceMatrix: {
-      docASentences: ["S1", "S2", "S3", "S4", "S5"],
-      docBSentences: ["S1", "S2", "S3", "S4", "S5"],
-
-      data: [
-        [100, 15, 0, 8, 12],
-        [18, 95, 22, 5, 0],
-        [0, 10, 100, 40, 15],
-        [12, 0, 35, 88, 10],
-        [5, 2, 10, 15, 92]
-      ]
-    },
-
-    technical: [
-      {
-        label: "RapidFuzz Ratio",
-        value: "54.78%"
-      },
-      {
-        label: "RapidFuzz Partial",
-        value: "53.75%"
-      },
-      {
-        label: "Token Sort",
-        value: "68.51%"
-      },
-      {
-        label: "Token Set",
-        value: "70.31%"
-      },
-      {
-        label: "TF-IDF",
-        value: "50.53%"
-      },
-      {
-        label: "Sentence Transformer",
-        value: "92.30%"
-      }
-    ]
+function renderSimilarityMatrix(matrixData) {
+  const {
+    docASentences,
+    docBSentences,
+    data
+  } = matrixData;
+  const getHeatmapClass = (val) => {
+    if (val >= 80) return "cell-high";
+    if (val >= 40) return "cell-med";
+    return "cell-low";
   };
-
+  return (
+    <div className="matrix-grid-wrapper">
+      <div className="matrix-table">
+        <div className="matrix-row header">
+          <div className="matrix-cell corner-cell">
+            A \ B
+          </div>
+          {docBSentences.map((col, idx) => (
+            <div
+              key={idx}
+              className="matrix-cell header-cell"
+            >
+              {col}
+            </div>
+          ))}
+        </div>
+        {data.map((row, rIdx) => (
+          <div
+            key={rIdx}
+            className="matrix-row"
+          >
+            <div className="matrix-cell row-header">
+              {docASentences[rIdx]}
+            </div>
+            {row.map((score, cIdx) => (
+              <div
+                key={cIdx}
+                className={`matrix-cell data-cell ${getHeatmapClass(
+                  score
+                )}`}
+                title={score === null
+                  ? `No threshold match for ${docASentences[rIdx]} vs ${docBSentences[cIdx]}`
+                  : `Match ${docASentences[rIdx]} vs ${docBSentences[cIdx]}: ${score}%`}
+              >
+                {score === null ? "-" : `${score}%`}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
   const getRiskClass = (score) => {
     const numericScore = parseFloat(score);
 
@@ -273,11 +268,8 @@ function LatestAnalysis({ data, onViewReport }) {
           </div>
 
           <div className="matrix-pro-container">
-
             {/* Heatmap Matrix */}
-            <SimilarityMatrixGrid
-              matrixData={analysis.sentenceMatrix}
-            />
+            {renderSimilarityMatrix(analysis.sentenceMatrix)}
 
             {/* Insights Panel */}
             <div className="matrix-insights-panel">
@@ -291,7 +283,7 @@ function LatestAnalysis({ data, onViewReport }) {
                 <div>
                   <strong>Critical Matches</strong>
                   <p>
-                    3 Sentences have &gt;90% direct structural copy.
+                    {analysis.sentenceMatches.filter((match) => match.score >= 90).length} sentence pairs scored at least 90%.
                   </p>
                 </div>
               </div>
@@ -303,7 +295,7 @@ function LatestAnalysis({ data, onViewReport }) {
                 <div>
                   <strong>Unique Content</strong>
                   <p>
-                    Sentences S1 (Doc B) &amp; S5 (Doc A) show low overlap.
+                    {analysis.sentenceMatches.length} sentence pairs met the matching threshold.
                   </p>
                 </div>
               </div>
@@ -365,57 +357,4 @@ function MetricBox({ icon: Icon, label, value }) {
     </div>
   );
 }
-function SimilarityMatrixGrid({ matrixData }) {
-  const {
-    docASentences,
-    docBSentences,
-    data
-  } = matrixData;
-  const getHeatmapClass = (val) => {
-    if (val >= 80) return "cell-high";
-    if (val >= 40) return "cell-med";
-    return "cell-low";
-  };
-  return (
-    <div className="matrix-grid-wrapper">
-      <div className="matrix-table">
-        <div className="matrix-row header">
-          <div className="matrix-cell corner-cell">
-            A \ B
-          </div>
-          {docBSentences.map((col, idx) => (
-            <div
-              key={idx}
-              className="matrix-cell header-cell"
-            >
-              {col}
-            </div>
-          ))}
-        </div>
-        {data.map((row, rIdx) => (
-          <div
-            key={rIdx}
-            className="matrix-row"
-          >
-            <div className="matrix-cell row-header">
-              {docASentences[rIdx]}
-            </div>
-            {row.map((score, cIdx) => (
-              <div
-                key={cIdx}
-                className={`matrix-cell data-cell ${getHeatmapClass(
-                  score
-                )}`}
-                title={`Match ${docASentences[rIdx]} vs ${docBSentences[cIdx]}: ${score}%`}
-              >
-                {score}%
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default LatestAnalysis;

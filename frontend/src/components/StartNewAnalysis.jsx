@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
 import { Search, Upload, FileText, X } from "lucide-react";
+import { uploadDocuments, runAnalysis, fetchAnalysis } from "../api";
 
-function StartNewAnalysis() {
+function StartNewAnalysis({ onAnalysisComplete }) {
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -19,12 +20,19 @@ function StartNewAnalysis() {
     setFiles((prev) => prev.filter((_, i) => i !== indexToRemove));
   };
 
-  const handleStartAnalysis = () => {
+  const handleStartAnalysis = async () => {
     if (files.length < 2) {
       alert("Please upload at least 2 documents to compare.");
       return;
     }
-    console.log("Starting analysis with files:", files);
+
+    try {
+      const { job_id } = await uploadDocuments(files);
+      await runAnalysis(job_id);
+      onAnalysisComplete?.(await fetchAnalysis(job_id));
+    } catch (err) {
+      alert(err.message);
+    }
   };
   return (
     <div className="start-analysis-card">

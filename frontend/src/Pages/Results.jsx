@@ -1,7 +1,7 @@
 import LatestAnalysis from "../components/LatestAnalysis";
 import AnalysisOverview from "../components/AnalysisOverview";
 
-function Results() {
+function Results({ latestAnalysis }) {
   return (
     <>
       <div className="Result-Content">
@@ -12,8 +12,12 @@ function Results() {
           </p>
         </div>
       </div>
- <AnalysisOverview />
-      <LatestAnalysis />
+      <AnalysisOverview
+        documentsChecked={latestAnalysis?.stats.documents ?? 0}
+        comparisonsMade={latestAnalysis?.stats.comparisons ?? 0}
+        needsReview={latestAnalysis?.stats.needsReview ?? 0}
+      />
+      {latestAnalysis && <LatestAnalysis data={latestAnalysis} />}
     </>
   );
 }

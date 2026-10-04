@@ -10,7 +10,7 @@ body,
   padding: 0;
   width: 100%;
   min-height: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 body {
   font-family: Arial, sans-serif;
@@ -19,7 +19,7 @@ body {
 .app {
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .dark-theme {
@@ -135,6 +135,7 @@ body {
   width: 240px;
   min-width: 240px;
   min-height: 100vh;
+  height: 100vh;
   position: sticky;
   top: 0;
   align-self: flex-start;
@@ -144,7 +145,8 @@ body {
   box-sizing: border-box;
   background-color: var(--header-bg);
   border-right: 1px solid var(--button-border);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   transition:
     width 0.28s ease,
     min-width 0.28s ease,
@@ -1010,6 +1012,7 @@ body {
   .sidebar {
     width: 100%;
     min-height: auto;
+    height: auto;
     position: static;
   }
 

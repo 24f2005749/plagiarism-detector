@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { Moon, Sun, PanelLeft} from "lucide-react";
 import StartNewAnalysis from "../components/StartNewAnalysis";
 import DocumentCompareForm from "../components/DocumentCompareForm";
 import LatestAnalysis from "../components/LatestAnalysis";
 import AnalysisOverview from "../components/AnalysisOverview";
 
-function Dashboard({ darkMode, toggleTheme,onOpenSidebar,sidebarOpen }) {
+function Dashboard({ darkMode, toggleTheme, onOpenSidebar, sidebarOpen, latestAnalysis, onAnalysisComplete }) {
   const hour = new Date().getHours();
   let Greetings;
   if (hour < 12) {
@@ -15,8 +14,6 @@ function Dashboard({ darkMode, toggleTheme,onOpenSidebar,sidebarOpen }) {
   } else {
     Greetings = "Good evening";
   }
-
-  const [latestAnalysis, setLatestAnalysis] = useState(null);
 
   return (
     <>
@@ -49,10 +46,14 @@ function Dashboard({ darkMode, toggleTheme,onOpenSidebar,sidebarOpen }) {
   </div>
 
 </header>
-      <AnalysisOverview />
-      <StartNewAnalysis />
-      <DocumentCompareForm onAnalysisComplete={setLatestAnalysis} />
-      <LatestAnalysis data={latestAnalysis} />
+      <AnalysisOverview
+        documentsChecked={latestAnalysis?.stats.documents ?? 0}
+        comparisonsMade={latestAnalysis?.stats.comparisons ?? 0}
+        needsReview={latestAnalysis?.stats.needsReview ?? 0}
+      />
+      <StartNewAnalysis onAnalysisComplete={onAnalysisComplete} />
+      <DocumentCompareForm onAnalysisComplete={onAnalysisComplete} />
+      {latestAnalysis && <LatestAnalysis data={latestAnalysis} />}
     </>
   );
 }

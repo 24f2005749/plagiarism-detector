@@ -14,6 +14,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [isLoading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [latestAnalysis, setLatestAnalysis] = useState(null);
   const toggleTheme = () => {
     setDarkMode((prev) => !prev);
   };
@@ -49,17 +50,25 @@ function App() {
                     toggleTheme={toggleTheme}
                     sidebarOpen={sidebarOpen}
                      onOpenSidebar={() => setSidebarOpen(true)}
+                    latestAnalysis={latestAnalysis}
+                    onAnalysisComplete={setLatestAnalysis}
                   />
                 }
               />
 
               <Route
                 path="/new-check"
-                element={<NewCheck setLoading={setLoading} />}
+                element={
+                  <NewCheck
+                    setLoading={setLoading}
+                    latestAnalysis={latestAnalysis}
+                    onAnalysisComplete={setLatestAnalysis}
+                  />
+                }
               />
               <Route
                 path="/results"
-                element={<Results />}
+                element={<Results latestAnalysis={latestAnalysis} />}
               />
             </Routes>
           </div>
