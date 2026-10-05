@@ -1,9 +1,13 @@
 import { useState, useRef } from "react";
 import { Search, Upload, FileText, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { analyzeFiles } from "../services/api";
 
-function StartNewAnalysis() {
+function StartNewAnalysis({ onAnalysisComplete, setLoading }) {
   const [files, setFiles] = useState([]);
+  const [error, setError] = useState("");
   const fileInputRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleUploadClick = () => {
     fileInputRef.current.click();
@@ -19,12 +23,23 @@ function StartNewAnalysis() {
     setFiles((prev) => prev.filter((_, i) => i !== indexToRemove));
   };
 
-  const handleStartAnalysis = () => {
+  const handleStartAnalysis = async () => {
     if (files.length < 2) {
-      alert("Please upload at least 2 documents to compare.");
+      setError("Please upload at least two documents to compare.");
       return;
     }
-    console.log("Starting analysis with files:", files);
+
+    setError("");
+    setLoading(true);
+    try {
+      const analysis = await analyzeFiles(files);
+      onAnalysisComplete(analysis);
+      navigate("/results");
+    } catch (err) {
+      setError(err.message || "Unable to analyze the selected documents.");
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="start-analysis-card">
@@ -68,6 +83,7 @@ function StartNewAnalysis() {
           </button>
         </div>
       )}
+      {error && <p className="analysis-form-error" role="alert">{error}</p>}
     </div>
   );
 }

@@ -28,7 +28,7 @@ temporary/               # temporary parser/OCR files
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r backend/src/requirements.txt
 ```
 
 ## Run the example
@@ -36,6 +36,27 @@ pip install -r requirements.txt
 ```bash
 PYTHONPATH=backend/src python backend/src/run_analysis.py backend/uploads/sample1.txt backend/uploads/sample2.txt
 ```
+
+## Run the web app
+
+Start the API server from the repository root:
+
+```bash
+PYTHONPATH=backend/src python backend/src/api.py
+```
+
+Then, in a second terminal, start the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+For local development, the frontend calls `http://127.0.0.1:5000/api`
+directly. For a deployed frontend, copy `frontend/.env.example` to
+`frontend/.env` and set `VITE_API_BASE_URL` to the deployed API base URL
+(for example, `https://api.example.com/api`) before building.
 
 ## Supported document formats
 

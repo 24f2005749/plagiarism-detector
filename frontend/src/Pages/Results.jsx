@@ -1,7 +1,7 @@
 import LatestAnalysis from "../components/LatestAnalysis";
 import AnalysisOverview from "../components/AnalysisOverview";
 
-function Results() {
+function Results({ analysis }) {
   return (
     <>
       <div className="Result-Content">
@@ -12,11 +12,14 @@ function Results() {
           </p>
         </div>
       </div>
- <AnalysisOverview />
-      <LatestAnalysis />
+      <AnalysisOverview
+        documentsChecked={analysis?.documentsChecked ?? 0}
+        comparisonsMade={analysis?.comparisonsMade ?? 0}
+        needsReview={analysis?.needsReview ?? 0}
+      />
+      <LatestAnalysis data={analysis} />
     </>
   );
 }
 
 export default Results;
-
