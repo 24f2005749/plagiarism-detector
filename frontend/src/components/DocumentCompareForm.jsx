@@ -35,7 +35,7 @@ function DocumentCompareForm({ onAnalysisComplete, setLoading }) {
     <div className="compare-form-card">
       <div className="section-title">
         <FileText size={17} />
-        <h2>COMPARE PLAGIARISM</h2>
+        <h2>COMPARE TEXTS</h2>
       </div>
 
       <div className="new-analysis-form">
@@ -67,7 +67,7 @@ function DocumentCompareForm({ onAnalysisComplete, setLoading }) {
 
         <button className="new-analysis-btn" onClick={handleCompare}>
           <Search size={18} />
-          Compare
+          Compare Texts
         </button>
       </div>
       {error && <p className="analysis-form-error" role="alert">{error}</p>}

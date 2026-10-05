@@ -129,12 +129,9 @@ function BatchAnalysis({ data }) {
 function DocumentSimilarityHeatmap({ matrix }) {
   const heatClass = (score, isSameFile) => {
     if (isSameFile) return "cell-self";
-    if (score >= 85) return "cell-critical";
     if (score >= 70) return "cell-high";
-    if (score >= 50) return "cell-elevated";
-    if (score >= 30) return "cell-moderate";
-    if (score >= 15) return "cell-low";
-    return "cell-minimal";
+    if (score >= 40) return "cell-medium";
+    return "cell-low";
   };
 
   return (
@@ -149,13 +146,30 @@ function DocumentSimilarityHeatmap({ matrix }) {
           <div className="matrix-row header" role="row">
             <div className="matrix-cell corner-cell" role="columnheader">File</div>
             {matrix.documents.map((filename, index) => (
-              <div key={filename} className="matrix-cell header-cell" role="columnheader" title={filename}>{`F${index + 1}`}</div>
+              <div
+                key={filename}
+                className="matrix-cell header-cell"
+                role="columnheader"
+                title={filename}
+                aria-label={`File ${index + 1}: ${filename}`}
+                tabIndex={0}
+              >
+                {`F${index + 1}`}
+              </div>
             ))}
           </div>
 
           {matrix.values.map((row, rowIndex) => (
             <div key={matrix.documents[rowIndex]} className="matrix-row" role="row">
-              <div className="matrix-cell row-header" role="rowheader" title={matrix.documents[rowIndex]}>{`F${rowIndex + 1}`}</div>
+              <div
+                className="matrix-cell row-header"
+                role="rowheader"
+                title={matrix.documents[rowIndex]}
+                aria-label={`File ${rowIndex + 1}: ${matrix.documents[rowIndex]}`}
+                tabIndex={0}
+              >
+                {`F${rowIndex + 1}`}
+              </div>
               {row.map((score, columnIndex) => {
                 const isSameFile = rowIndex === columnIndex;
                 const isAvailable = typeof score === "number";
@@ -169,6 +183,8 @@ function DocumentSimilarityHeatmap({ matrix }) {
                     className={`matrix-cell data-cell ${isAvailable ? heatClass(score, isSameFile) : "cell-unavailable"}`}
                     role="cell"
                     title={label}
+                    aria-label={label}
+                    tabIndex={0}
                   >
                     {isSameFile ? "—" : isAvailable ? `${Number(score).toFixed(1)}%` : "N/A"}
                   </div>
@@ -180,18 +196,19 @@ function DocumentSimilarityHeatmap({ matrix }) {
       </div>
 
       <div className="file-key" aria-label="File key">
-        {matrix.documents.map((filename, index) => <span key={filename}><strong>{`F${index + 1}`}</strong> {filename}</span>)}
+        {matrix.documents.map((filename, index) => (
+          <span key={filename} title={filename} aria-label={`File ${index + 1}: ${filename}`}>
+            <strong>{`F${index + 1}`}</strong> {filename}
+          </span>
+        ))}
       </div>
 
       <div className="matrix-legend" aria-label="Heatmap legend">
         <span className="legend-label">Pair similarity</span>
         <div className="legend-scale">
-          <span className="scale-item minimal">0–14%</span>
-          <span className="scale-item low">15–29%</span>
-          <span className="scale-item moderate">30–49%</span>
-          <span className="scale-item elevated">50–69%</span>
-          <span className="scale-item high">70–84%</span>
-          <span className="scale-item critical">85–100%</span>
+          <span className="scale-item low">0–39%</span>
+          <span className="scale-item medium">40–69%</span>
+          <span className="scale-item high">70–100%</span>
         </div>
       </div>
     </section>

@@ -141,7 +141,7 @@ def decision_engine(
         f"Sentence-level comparison found {matched_sentences} matching sentence(s), covering {coverage:.1f}% of document 1.",
     ]
     if matched_sentences:
-        reasons.extend(
+        reasons.extend( 
             [
                 f"The best sentence pair scored {highest_sentence_similarity:.1f}%, with an average best-pair score of {average_sentence_similarity:.1f}%.",
                 f"{strong_sentence_percentage:.1f}% of source sentences met the {SENTENCE_MATCH_THRESHOLD:.0f}% sentence-match threshold.",
