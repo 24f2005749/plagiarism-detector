@@ -3,8 +3,12 @@
 This module is the public processing boundary for a future web application.
 It deliberately has no Flask, HTTP, database, or storage dependencies.
 """
-
 from __future__ import annotations
+
+
+import hashlib
+import numpy as np
+import redis
 
 from pathlib import Path
 
@@ -17,6 +21,16 @@ from parser import read_file
 from preprocessor import preprocess
 from similarity import rf_similarity, sentence_matches, sentence_transformers, tfidf_similarity
 from utils.pairing import unique_pairs
+
+redis_client = redis.Redis(
+    host="localhost",
+    port=6379,
+    decode_responses=False,
+)
+
+EMBEDDING_CACHE_VERSION = "magicRedisKey"
+
+
 
 
 def analyze_text_pair(source_text: str, target_text: str) -> dict[str, object]:
@@ -41,6 +55,9 @@ def analyze_text_pair(source_text: str, target_text: str) -> dict[str, object]:
         "rapidfuzz": rapidfuzz,
         "tfidf": tfidf,
         "sentence_transformer": semantic,
+
+
+
         "sentence_matches": matches,
         "decision": decision,
         "documents": {"source": source_text, "target": target_text},
@@ -73,6 +90,68 @@ def analyze_documents(document_paths: list[str | Path]) -> dict[str, object]:
         "total_pairs": len(comparisons),
         "comparisons": comparisons,
     }
+# Create a sentence cache key
+def _sentence_cache_key(sentence: str) -> str:
+    sentence_hash = hashlib.sha256(
+        sentence.encode("utf-8")
+    ).hexdigest()
+    return f"sentence_embedding:{EMBEDDING_CACHE_VERSION}:{sentence_hash}"
+
+# Store and retrieve embeddings 
+
+#Store Embeddings
+def _serialize_embedding(embedding: np.ndarray) -> bytes:
+    return embedding.astype(np.float32).tobytes() #
+#Retrieve Embeddings
+def _deserialize_embedding(data: bytes) -> np.ndarray:
+    return np.frombuffer(data, dtype=np.float32)
+
+def _get_sentence_embeddings(sentences: list[str]) -> list[np.ndarray]:
+    """Get sentence embeddings from Redis when available.
+
+    Only sentences missing from the cache are sent through the model.
+    """
+
+    if not sentences:
+        return []
+
+    keys = [_sentence_cache_key(sentence) for sentence in sentences]
+
+    # One batched Redis request instead of one request per sentence.
+    cached_values = redis_client.mget(keys)
+
+    embeddings: list[np.ndarray | None] = [None] * len(sentences)
+    missing_sentences = []
+    missing_indices = []
+
+    for index, cached in enumerate(cached_values):
+        if cached is not None:
+            embeddings[index] = _deserialize_embedding(cached)
+        else:
+            missing_sentences.append(sentences[index])
+            missing_indices.append(index)
+
+    # Only encode sentences that Redis doesn't have.
+    if missing_sentences:
+        generated_embeddings = model.encode(missing_sentences)
+
+        pipeline = redis_client.pipeline(transaction=False)
+
+        for index, embedding in zip(
+            missing_indices,
+            generated_embeddings,
+        ):
+            embeddings[index] = embedding
+
+            pipeline.set(
+                keys[index],
+                _serialize_embedding(embedding),
+                ex=60 * 60 * 24 * 30,  # 30 days
+            )
+
+        pipeline.execute()
+
+    return embeddings
 
 
 def _prepare_documents(document_paths: list[str | Path]) -> list[dict[str, object]]:
@@ -91,8 +170,18 @@ def _prepare_documents(document_paths: list[str | Path]) -> list[dict[str, objec
         )
 
     document_embeddings = model.encode([document["processed"]["clean_text"] for document in documents])
-    all_sentences = [sentence for document in documents for sentence in document["processed"]["raw_sentences"]]
-    all_sentence_embeddings = model.encode(all_sentences) if all_sentences else []
+    # all_sentences = [sentence for document in documents for sentence in document["processed"]["raw_sentences"]]
+    # all_sentence_embeddings = model.encode(all_sentences) if all_sentences else []
+    
+    all_sentences = [
+        sentence
+        for document in documents
+        for sentence in document["processed"]["raw_sentences"]
+    ]
+
+    all_sentence_embeddings = _get_sentence_embeddings(all_sentences)
+
+
     offset = 0
     for document, document_embedding in zip(documents, document_embeddings):
         sentence_count = len(document["processed"]["raw_sentences"])
@@ -158,3 +247,5 @@ def _sentence_matches(source_sentences, target_sentences, source_embeddings, tar
         "best_scores": best_scores,
         "matches": matches,
     }
+
+

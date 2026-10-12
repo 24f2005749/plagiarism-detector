@@ -1,4 +1,6 @@
 import json
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import shutil
 import uuid
 from pathlib import Path
@@ -13,8 +15,24 @@ from parser import DocumentParseError, SUPPORTED_EXTENSIONS
 
 
 app = Flask(__name__)
+# Rate limits are configurable here. These are per client IP address.
+UPLOAD_RATE_LIMIT = "5 per minute"
+ANALYSIS_RATE_LIMIT = "1 per 30 seconds"
+RESULT_RATE_LIMIT = "60 per minute"
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    storage_uri="memory://",  # Switch to Redis later if shared counters are needed.
+    default_limits=[]
+)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 api = Api(app)
+
+
+@api.errorhandler(429)
+def rate_limit_exceeded(error):
+    return {"error": "Rate limit exceeded. Please try again later."}, 429
 
 UPLOAD_FOLDER = Path(__file__).resolve().parents[1] / "uploads"
 
@@ -73,12 +91,18 @@ class Document(Resource):
 
     # create job id of given documents
 
+    @limiter.limit(UPLOAD_RATE_LIMIT)
     def post(self):
         files = request.files.getlist("files")
 
         if len(files) < 2:
             return {
                 "error": "At least two documents are required."
+            }, 400
+
+        if len(files) > 20:
+            return {
+                "error": "You can upload a maximum of 20 files at once."
             }, 400
 
         job_id = str(uuid.uuid4())
@@ -95,6 +119,7 @@ class Document(Resource):
 
             if not file.filename:
                 continue
+            
 
             filename = secure_filename(file.filename)
 
@@ -123,10 +148,16 @@ class Document(Resource):
             })
 
         if len(uploaded_documents) < 2:
-            shutil.rmtree(job_folder)
+            shutil.rmtree(job_folder, ignore_errors=True)
 
             return {
                 "error": "At least two valid documents are required."
+            }, 400
+
+        if len(uploaded_documents) > 20:
+            shutil.rmtree(job_folder, ignore_errors=True)
+            return {
+                "error": "You can upload a maximum of 20 valid files at once."
             }, 400
 
         return {
@@ -169,6 +200,7 @@ class JobWork(Resource):
             "documents": documents
         }, 200
 
+    @limiter.limit(ANALYSIS_RATE_LIMIT)
     def post(self, job_id):
 
         job_folder = get_job_folder(job_id)
@@ -284,6 +316,7 @@ class JobWork(Resource):
 
 class LexicalResult(Resource):
 
+    @limiter.limit(RESULT_RATE_LIMIT)
     def get(self, job_id):
 
         analysis, error, status = load_analysis(job_id)
@@ -315,6 +348,7 @@ class LexicalResult(Resource):
 
 class SemanticResult(Resource):
 
+    @limiter.limit(RESULT_RATE_LIMIT)
     def get(self, job_id):
 
         analysis, error, status = load_analysis(job_id)
@@ -346,6 +380,7 @@ class SemanticResult(Resource):
 
 class SentenceResult(Resource):
 
+    @limiter.limit(RESULT_RATE_LIMIT)
     def get(self, job_id):
 
         analysis, error, status = load_analysis(job_id)
@@ -383,6 +418,7 @@ class SentenceResult(Resource):
 
 class DecisionResult(Resource):
 
+    @limiter.limit(RESULT_RATE_LIMIT)
     def get(self, job_id):
 
         analysis, error, status = load_analysis(job_id)
@@ -424,6 +460,7 @@ class DecisionResult(Resource):
 
 class HeatmapResult(Resource):
 
+    @limiter.limit(RESULT_RATE_LIMIT)
     def get(self, job_id):
 
         analysis, error, status = load_analysis(job_id)
