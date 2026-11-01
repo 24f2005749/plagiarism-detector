@@ -3,7 +3,6 @@ import {
   Home,
   Search,
   BarChart3,
-  History,
   HelpCircle,
   PanelLeftClose,
   PanelLeftOpen,
@@ -16,7 +15,6 @@ function Sidebar({ collapsed, onToggle }) {
   { label: "Dashboard", icon: Home, path: "/" },
   { label: "New Check", icon: Search, path: "/new-check" },
   { label: "Results", icon: BarChart3, path: "/results" },
-  { label: "History", icon: History, path: "/history" },
 ];
   const supportItems = [
   {
