@@ -1,5 +1,7 @@
 import json
 import shutil
+import threading
+import time
 import uuid
 from pathlib import Path
 
@@ -18,14 +20,22 @@ api = Api(app)
 
 UPLOAD_FOLDER = Path(__file__).resolve().parents[1] / "uploads"
 
+# Job cleanup settings
+JOB_TTL_SECONDS = 60 * 60            # delete jobs after 1 hour
+CLEANUP_INTERVAL_SECONDS = 5 * 60    # how often to check for expired jobs
 
 
 # Helper: get job folder
 
 
 def get_job_folder(job_id):
-    return UPLOAD_FOLDER / job_id
+    # Validate the id so values like ".." can never escape UPLOAD_FOLDER
+    try:
+        job_id = str(uuid.UUID(job_id))
+    except ValueError:
+        return UPLOAD_FOLDER / "__invalid__"   # never exists -> 404
 
+    return UPLOAD_FOLDER / job_id
 
 
 # Helper: get original filename
@@ -42,7 +52,6 @@ def get_original_filename(file_path):
 def api_error(message, status=400):
     """Return an error shape the frontend can display consistently."""
     return {"error": message}, status
-
 
 
 # Helper: load saved analysis
@@ -64,6 +73,48 @@ def load_analysis(job_id):
 
     return analysis, None, None
 
+
+# Background cleanup of expired jobs
+
+
+def cleanup_expired_jobs():
+    """Delete job folders not modified within JOB_TTL_SECONDS."""
+    if not UPLOAD_FOLDER.exists():
+        return
+
+    now = time.time()
+
+    for job_folder in UPLOAD_FOLDER.iterdir():
+        if not job_folder.is_dir():
+            continue
+
+        try:
+            age = now - job_folder.stat().st_mtime
+
+            if age > JOB_TTL_SECONDS:
+                shutil.rmtree(job_folder, ignore_errors=True)
+                app.logger.info("Deleted expired job %s", job_folder.name)
+        except OSError:
+            app.logger.exception("Could not clean up %s", job_folder.name)
+
+
+def cleanup_loop():
+    while True:
+        try:
+            cleanup_expired_jobs()
+        except Exception:
+            app.logger.exception("Job cleanup run failed")
+
+        time.sleep(CLEANUP_INTERVAL_SECONDS)
+
+
+def start_cleanup_thread():
+    thread = threading.Thread(
+        target=cleanup_loop,
+        name="job-cleanup",
+        daemon=True,
+    )
+    thread.start()
 
 
 # Document upload
@@ -135,7 +186,6 @@ class Document(Resource):
         }, 201
 
 
-
 # Job
 
 
@@ -190,9 +240,7 @@ class JobWork(Resource):
                 "error": "At least two documents are required."
             }, 400
 
-        
         # Run the complete analysis once
-        
 
         try:
             analysis = analyze_documents([str(file_path) for file_path in files])
@@ -205,10 +253,8 @@ class JobWork(Resource):
                 500,
             )
 
-        
         # Replace UUID-prefixed filenames
         # with original filenames
-        
 
         for comparison in analysis["comparisons"]:
 
@@ -224,9 +270,7 @@ class JobWork(Resource):
                 )
             )
 
-        
         # Save complete analysis
-        
 
         analysis_file = job_folder / "analysis.json"
 
@@ -243,9 +287,7 @@ class JobWork(Resource):
                 ensure_ascii=False
             )
 
-        
         # Return final decision for every pair
-        
 
         results = []
 
@@ -258,7 +300,7 @@ class JobWork(Resource):
             })
 
         return {
-            "message" : "Documents uploaded successfully."
+            "message": "Documents uploaded successfully."
         }, 200
 
     def delete(self, job_id):
@@ -276,7 +318,6 @@ class JobWork(Resource):
             "message": "Job deleted successfully",
             "job_id": job_id
         }, 200
-
 
 
 # Lexical result
@@ -309,7 +350,6 @@ class LexicalResult(Resource):
         }, 200
 
 
-
 # Semantic result
 
 
@@ -338,7 +378,6 @@ class SemanticResult(Resource):
             "job_id": job_id,
             "results": results
         }, 200
-
 
 
 # Sentence matching result
@@ -375,7 +414,6 @@ class SentenceResult(Resource):
             "job_id": job_id,
             "results": results
         }, 200
-
 
 
 # Decision result
@@ -419,8 +457,8 @@ class DecisionResult(Resource):
         }, 200
 
 
-
 # Heatmap result
+
 
 class HeatmapResult(Resource):
 
@@ -432,7 +470,7 @@ class HeatmapResult(Resource):
             return error, status
 
         documents = {}
-        
+
         # Collect documents and their IDs
         for comparison in analysis["comparisons"]:
             for key in ("document_1", "document_2"):
@@ -494,7 +532,7 @@ api.add_resource(
 
 api.add_resource(
     JobWork,
-    "/api/jobs/<string:job_id>" 
+    "/api/jobs/<string:job_id>"
 )
 
 api.add_resource(
@@ -528,6 +566,7 @@ api.add_resource(
 
 if __name__ == "__main__":
     UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+    start_cleanup_thread()
     app.run(
         port=5000,
         debug=False
