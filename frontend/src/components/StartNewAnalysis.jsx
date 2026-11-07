@@ -6,17 +6,45 @@ import { analyzeFiles } from "../services/api";
 function StartNewAnalysis({ onAnalysisComplete, setLoading }) {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
   const handleUploadClick = () => {
-    fileInputRef.current.click();
+    fileInputRef.current?.click();
+  };
+
+  const addFiles = (selectedFiles) => {
+    const incomingFiles = Array.from(selectedFiles);
+    const supportedFiles = incomingFiles.filter((file) => /\.(pdf|docx?|txt)$/i.test(file.name));
+
+    if (supportedFiles.length > 0) {
+      setFiles((prev) => [...prev, ...supportedFiles]);
+    }
+
+    setError(
+      supportedFiles.length < incomingFiles.length
+        ? "Only PDF, DOC, DOCX, and TXT files are supported."
+        : ""
+    );
   };
 
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    setFiles((prev) => [...prev, ...selectedFiles]);
+    addFiles(e.target.files);
     e.target.value = "";
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    addFiles(e.dataTransfer.files);
+  };
+
+  const handleDropzoneKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleUploadClick();
+    }
   };
 
   const removeFile = (indexToRemove) => {
@@ -47,19 +75,42 @@ function StartNewAnalysis({ onAnalysisComplete, setLoading }) {
       <h2>START NEW ANALYSIS</h2>
       <p>Compare multiple documents and detect similarities.</p>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        accept=".pdf,.doc,.docx,.txt"
-        onChange={handleFileChange}
-        style={{ display: "none" }}
-      />
-
-      <button className="new-analysis-btn" onClick={handleUploadClick}>
-        <Upload size={18} />
-        Upload Documents
-      </button>
+      <div
+        className={`upload-dropzone${isDragging ? " is-dragging" : ""}`}
+        role="button"
+        tabIndex={0}
+        aria-label="Upload documents. Drop files here or press Enter to browse."
+        onClick={handleUploadClick}
+        onKeyDown={handleDropzoneKeyDown}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "copy";
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) {
+            setIsDragging(false);
+          }
+        }}
+        onDrop={handleDrop}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.txt"
+          onChange={handleFileChange}
+          tabIndex={-1}
+          aria-hidden="true"
+          style={{ display: "none" }}
+        />
+        <Upload size={22} />
+        <strong>Drag and drop documents here</strong>
+        <span>or click to browse · PDF, DOC, DOCX, TXT</span>
+      </div>
 
       {files.length > 0 && (
         <div className="uploaded-files-list">
