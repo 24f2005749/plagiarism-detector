@@ -60,8 +60,8 @@ function Help() {
             <Grid2X2 size={24} />
             <p>
               When you upload more than two files, there is no one overall plagiarism score for the batch. The heatmap
-              shows every file pair: find a row and column intersection to see that pair’s similarity. Cooler colors
-              indicate lower similarity; warmer colors indicate higher similarity. The diagonal is neutral because a
+              shows every file pair: find a row and column intersection to see that pair’s similarity. Darker green
+              indicates lower similarity; brighter green indicates higher similarity. The diagonal is neutral because a
               file is always identical to itself.
             </p>
           </div>
